@@ -1,0 +1,6 @@
+flask
+celery
+flask-mysqldb
+mysql-connector-python
+sqlalchemy
+redis

@@ -1,0 +1,59 @@
+version: "3.8"
+services:
+  flask-app:
+    build: './flask-app'
+    links:
+      - db
+    environment:
+      - REDIS_URL=redis
+      - REDIS_PORT=6379
+    ports:
+      - "5005:5000"
+    depends_on:
+      - redis
+      - db
+    networks:
+      - python-app-network
+
+  cel-worker:
+    build: './cel-worker'
+    user: nobody
+    depends_on:
+      - redis
+      - flask-app
+      - db
+    networks:
+      - python-app-network
+
+
+  redis:
+    image: 'redis:4-alpine'
+    ports:
+      - '6379:6379'
+    networks:
+      - python-app-network
+
+
+  db:
+    image: mysql/mysql-server:8.0.23
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_USER: ani
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/:ro
+      - mysql-python-app-volume:/var/lib/mysql
+      - mysql-python-app-volume-config:/etc/mysql
+
+    networks:
+      - python-app-network
+
+networks:
+  python-app-network:
+    name: python-app-network
+
+volumes:
+  mysql-python-app-volume:
+  mysql-python-app-volume-config:
